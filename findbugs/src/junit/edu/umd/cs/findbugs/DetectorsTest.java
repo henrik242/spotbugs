@@ -18,7 +18,7 @@
  */
 package edu.umd.cs.findbugs;
 
-import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -120,6 +120,28 @@ public class DetectorsTest {
             // TODO better to add ecj compiler and to compile classes with it on build, not with UI.
             System.err.println("No bugs were reported. Probably Eclipse was not used to compile the project");
         }
+    }
+
+    // TODO: This is a workaround, the current test infrastructure doesn't allow to set warning expectations on lambdas
+    @Test
+    public void testLambdaIssue20() throws IOException, InterruptedException {
+        setUpEngine("build/classes/lambdas/Issue20.class");
+
+        // Disable the expected warning detector, it won't work with lambdas
+        engine.getUserPreferences().enableDetector(
+                DetectorFactoryCollection.instance().getFactory("CheckExpectedWarnings"), false);
+
+        engine.execute();
+
+        boolean found = false;
+        for (final BugInstance bi : bugReporter.getBugCollection()) {
+            if (bi.getType().equals("NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE")) {
+                found = true;
+                break;
+            }
+        }
+
+        assertTrue("No NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE found", found);
     }
 
     @After

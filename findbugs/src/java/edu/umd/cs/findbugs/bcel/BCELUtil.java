@@ -159,7 +159,7 @@ public abstract class BCELUtil {
         return  getObjectTypeInstance(clazz.getName());
     }
 
-    public static boolean isSynthetic(FieldOrMethod m) {
+    private static boolean internalIsSynthetic(FieldOrMethod m) {
         if (m.isSynthetic()) {
             return true;
         }
@@ -170,6 +170,11 @@ public abstract class BCELUtil {
             }
         }
         return false;
+    }
+
+    public static boolean isSynthetic(FieldOrMethod m) {
+        return internalIsSynthetic(m)
+                && (!(m instanceof Method) || !isLambda((Method) m));
     }
     public static boolean isSynthetic(JavaClass j) {
         if (j.isSynthetic()) {
@@ -193,5 +198,14 @@ public abstract class BCELUtil {
             }
         }
         return false;
+    }
+
+    /**
+     * Notice this is a best guess, there is really nothing that strictly identifies lambdas
+     * @param m The method to check if it's a lambda
+     * @return True if this could be a lambda, false otherwise
+     */
+    public static boolean isLambda(Method m) {
+        return m.isPrivate() && internalIsSynthetic(m);
     }
 }
